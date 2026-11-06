@@ -9,8 +9,12 @@ export default defineConfig({
             input: ['resources/css/app.css', 'resources/js/app.js'],
             refresh: true,
             fonts: [
-                bunny('Instrument Sans', {
-                    weights: [400, 500, 600],
+                bunny('DotGothic16', {
+                    variable: '--font-dotgothic',
+                }),
+                bunny('Bitcount Grid Single', {
+                    weights: [400, 600],
+                    variable: '--font-bitcount',
                 }),
             ],
         }),

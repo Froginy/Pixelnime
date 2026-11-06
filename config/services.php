@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'anilist' => [
+        'url' => env('ANILIST_URL', 'https://graphql.anilist.co'),
+    ],
+
 ];

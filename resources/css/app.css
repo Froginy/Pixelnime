@@ -3,6 +3,206 @@
 @source '../views';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 
+@custom-variant night (&:where([data-theme=night], [data-theme=night] *));
+
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: var(--font-dotgothic), ui-monospace, monospace;
+    --font-title: var(--font-bitcount), var(--font-dotgothic), ui-monospace, monospace;
+
+    --color-ink: #2d2543;
+    --color-ink-soft: #6b6185;
+    --color-violet: #8d68d3;
+    --color-rose: #df9ad0;
+    --color-rose-pale: #f9eef5;
+    --color-lavender: #dadafc;
+    --color-mint: #a6efdc;
+    --color-danger: #b4364a;
+    --color-danger-pale: #fbe3e6;
+    --color-success: #1f6b52;
+    --color-sky-day: #f5d9d9;
+    --color-sky-night: #7776a9;
+
+    --radius-window: 20px;
+    --radius-inner: 14px;
+    --radius-bubble: 18px;
+    --radius-button: 16px;
+    --radius-control: 8px;
+    --radius-pixel: 3px;
+
+    --shadow-window: 0 8px 0 rgb(45 37 67 / 0.14);
+    --shadow-button: 0 4px 0 var(--color-rose);
+    --shadow-button-hover: 0 4px 0 var(--color-violet);
+}
+
+@keyframes sky-twinkle {
+    0%, 100% { opacity: 0.2; }
+    50% { opacity: 1; }
+}
+
+@keyframes sky-drift {
+    from { transform: translateX(-120px); }
+    to { transform: translateX(1300px); }
+}
+
+@keyframes sky-bob {
+    from { transform: translateY(0); }
+    to { transform: translateY(10px); }
+}
+
+@keyframes sky-pulse {
+    0%, 100% { opacity: 0.35; }
+    50% { opacity: 0.9; }
+}
+
+@keyframes sky-shoot {
+    0% { transform: translate(0, 0); opacity: 0; }
+    1% { opacity: 1; }
+    8% { transform: translate(420px, 210px); opacity: 0; }
+    100% { transform: translate(420px, 210px); opacity: 0; }
+}
+
+.sky-twinkle {
+    animation: sky-twinkle var(--duration, 3s) ease-in-out var(--delay, 0s) infinite;
+}
+
+.sky-cloud {
+    animation: sky-drift var(--duration, 120s) linear var(--delay, 0s) infinite;
+}
+
+.sky-sun {
+    animation: sky-bob 6s ease-in-out infinite alternate;
+}
+
+.sky-glow {
+    animation: sky-pulse 6s ease-in-out infinite;
+}
+
+.sky-shooting-star {
+    opacity: 0;
+    animation: sky-shoot var(--duration, 12s) ease-out var(--delay, 0s) infinite;
+}
+
+@keyframes window-back-nudge {
+    0%, 84%, 100% { transform: rotate(0); }
+    87% { transform: rotate(-12deg); }
+    90% { transform: rotate(10deg); }
+    93% { transform: rotate(-7deg); }
+    96% { transform: rotate(4deg); }
+}
+
+.window-back {
+    animation: window-back-nudge 4s ease-in-out 1.5s infinite;
+}
+
+.window-back:hover,
+.window-back:focus-visible {
+    animation: none;
+}
+
+@view-transition {
+    navigation: auto;
+}
+
+/* Une fenêtre qui s'ouvre : petit zoom avec rebond, façon bureau kawaii. */
+@keyframes window-open {
+    0% { opacity: 0; transform: translateY(18px) scale(0.82); }
+    55% { opacity: 1; transform: translateY(-3px) scale(1.025); }
+    78% { transform: translateY(1px) scale(0.995); }
+    100% { opacity: 1; transform: none; }
+}
+
+/* La page quittée se referme comme une fenêtre. */
+@keyframes window-close {
+    to { opacity: 0; transform: translateY(10px) scale(0.92); }
+}
+
+@keyframes window-celebrate {
+    0%, 100% { transform: none; }
+    20% { transform: translateY(-14px) rotate(-1.5deg); }
+    40% { transform: translateY(0) rotate(0); }
+    60% { transform: translateY(-7px) rotate(1deg); }
+    80% { transform: translateY(0); }
+}
+
+@keyframes window-error {
+    0%, 100% { transform: none; }
+    15%, 55% { transform: translateX(-10px); }
+    35%, 75% { transform: translateX(10px); }
+    90% { transform: translateX(-4px); }
+}
+
+@keyframes window-swap {
+    from { opacity: 0; transform: translateX(16px); }
+}
+
+@keyframes bubble-pop {
+    0% { opacity: 0; transform: scale(0.5); }
+    65% { opacity: 1; transform: scale(1.06); }
+    100% { transform: none; }
+}
+
+@keyframes menu-open {
+    from { opacity: 0; transform: scaleY(0.85) translateY(6px); }
+}
+
+@keyframes image-refresh {
+    0% { filter: brightness(1.6) saturate(0.6); }
+    100% { filter: none; }
+}
+
+.window-open {
+    animation: window-open 460ms cubic-bezier(0.2, 0.9, 0.3, 1.15) var(--window-delay, 0ms) both;
+}
+
+.window-celebrate {
+    animation: window-celebrate 900ms ease-out both;
+}
+
+.window-error {
+    animation: window-error 520ms ease-in-out both;
+}
+
+.window-swap {
+    animation: window-swap 260ms ease-out both;
+}
+
+.bubble-pop {
+    animation: bubble-pop 340ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+
+.menu-open {
+    animation: menu-open 140ms ease-out both;
+}
+
+.image-refresh {
+    animation: image-refresh 600ms ease-out both;
+}
+
+html:active-view-transition-type(navigate)::view-transition-old(livewire-navigate) {
+    animation: window-close 180ms ease-in both;
+}
+
+html:active-view-transition-type(navigate)::view-transition-new(livewire-navigate) {
+    animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .window-open,
+    .window-celebrate,
+    .window-error,
+    .window-swap,
+    .bubble-pop,
+    .menu-open,
+    .image-refresh,
+    .window-back,
+    .sky-twinkle,
+    .sky-cloud,
+    .sky-sun,
+    .sky-glow {
+        animation: none;
+    }
+
+    .sky-shooting-star {
+        display: none;
+    }
 }

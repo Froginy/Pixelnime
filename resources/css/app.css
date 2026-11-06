@@ -3,6 +3,112 @@
 @source '../views';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 
+@custom-variant night (&:where([data-theme=night], [data-theme=night] *));
+
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: var(--font-dotgothic), ui-monospace, monospace;
+    --font-title: var(--font-bitcount), var(--font-dotgothic), ui-monospace, monospace;
+
+    --color-ink: #2d2543;
+    --color-ink-soft: #6b6185;
+    --color-violet: #8d68d3;
+    --color-rose: #df9ad0;
+    --color-rose-pale: #f9eef5;
+    --color-lavender: #dadafc;
+    --color-mint: #a6efdc;
+    --color-danger: #b4364a;
+    --color-danger-pale: #fbe3e6;
+    --color-success: #1f6b52;
+    --color-sky-day: #f5d9d9;
+    --color-sky-night: #7776a9;
+
+    --radius-window: 20px;
+    --radius-inner: 14px;
+    --radius-bubble: 18px;
+    --radius-button: 16px;
+    --radius-control: 8px;
+    --radius-pixel: 3px;
+
+    --shadow-window: 0 8px 0 rgb(45 37 67 / 0.14);
+    --shadow-button: 0 4px 0 var(--color-rose);
+    --shadow-button-hover: 0 4px 0 var(--color-violet);
+}
+
+@keyframes sky-twinkle {
+    0%, 100% { opacity: 0.2; }
+    50% { opacity: 1; }
+}
+
+@keyframes sky-drift {
+    from { transform: translateX(-120px); }
+    to { transform: translateX(1300px); }
+}
+
+@keyframes sky-bob {
+    from { transform: translateY(0); }
+    to { transform: translateY(10px); }
+}
+
+@keyframes sky-pulse {
+    0%, 100% { opacity: 0.35; }
+    50% { opacity: 0.9; }
+}
+
+@keyframes sky-shoot {
+    0% { transform: translate(0, 0); opacity: 0; }
+    1% { opacity: 1; }
+    8% { transform: translate(420px, 210px); opacity: 0; }
+    100% { transform: translate(420px, 210px); opacity: 0; }
+}
+
+.sky-twinkle {
+    animation: sky-twinkle var(--duration, 3s) ease-in-out var(--delay, 0s) infinite;
+}
+
+.sky-cloud {
+    animation: sky-drift var(--duration, 120s) linear var(--delay, 0s) infinite;
+}
+
+.sky-sun {
+    animation: sky-bob 6s ease-in-out infinite alternate;
+}
+
+.sky-glow {
+    animation: sky-pulse 6s ease-in-out infinite;
+}
+
+.sky-shooting-star {
+    opacity: 0;
+    animation: sky-shoot var(--duration, 12s) ease-out var(--delay, 0s) infinite;
+}
+
+@keyframes window-back-nudge {
+    0%, 84%, 100% { transform: rotate(0); }
+    87% { transform: rotate(-12deg); }
+    90% { transform: rotate(10deg); }
+    93% { transform: rotate(-7deg); }
+    96% { transform: rotate(4deg); }
+}
+
+.window-back {
+    animation: window-back-nudge 4s ease-in-out 1.5s infinite;
+}
+
+.window-back:hover,
+.window-back:focus-visible {
+    animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .window-back,
+    .sky-twinkle,
+    .sky-cloud,
+    .sky-sun,
+    .sky-glow {
+        animation: none;
+    }
+
+    .sky-shooting-star {
+        display: none;
+    }
 }

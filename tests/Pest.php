@@ -1,6 +1,10 @@
 <?php
 
+use App\Http\Middleware\EnsurePlayerCookie;
+use App\Models\Character;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
+use Livewire\LivewireManager;
 use Tests\TestCase;
 
 /*
@@ -47,4 +51,29 @@ expect()->extend('toBeOne', function () {
 function something()
 {
     // ..
+}
+
+/**
+ * Store a small generated PNG as the character's image on the faked local disk.
+ */
+function storeCharacterImage(Character $character, int $width = 60, int $height = 90): void
+{
+    $image = imagecreatetruecolor($width, $height);
+
+    for ($x = 0; $x < $width; $x++) {
+        imagefilledrectangle($image, $x, 0, $x, $height - 1, imagecolorallocate($image, ($x * 37) % 256, ($x * 91) % 256, ($x * 13) % 256));
+    }
+
+    ob_start();
+    imagepng($image);
+
+    Storage::disk('local')->put($character->image_path, (string) ob_get_clean());
+}
+
+/**
+ * Prepare Livewire tests sent by the given anonymous player.
+ */
+function playAs(string $playerUuid): LivewireManager
+{
+    return Livewire\Livewire::withCookie(EnsurePlayerCookie::COOKIE, $playerUuid);
 }

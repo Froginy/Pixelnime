@@ -21,6 +21,11 @@ new class extends Component
 
     public string $search = '';
 
+    /**
+     * Result of the game when it ended during this visit, used to play the end animation once.
+     */
+    public ?string $outcome = null;
+
     #[Computed]
     public function game(): Game
     {
@@ -82,6 +87,10 @@ new class extends Component
 
         $this->game->submitGuess($character);
 
+        if ($this->game->status->isFinished()) {
+            $this->outcome = $this->game->status->value;
+        }
+
         $this->reset('search');
         unset($this->game, $this->messages, $this->suggestions);
     }
@@ -133,13 +142,17 @@ new class extends Component
     <x-ui.window
         :title="$finished ? Str::slug($character->name).'.jpg' : 'personnage.jpg'"
         :back="$backUrl"
-        class="col-span-12 lg:col-span-5"
+        @class([
+            'col-span-12 lg:col-span-5',
+            'window-celebrate' => $outcome === GameStatus::Won->value,
+            'window-error' => $outcome === GameStatus::Lost->value,
+        ])
     >
         <img
             wire:key="image-{{ $game->id }}-{{ $level }}"
             src="{{ route('games.image', ['game' => $game, 'v' => $level]) }}"
             alt="{{ $finished ? $character->name : 'Personnage mystère, netteté '.$level.' sur '.Game::FULL_QUALITY_LEVEL }}"
-            class="aspect-[2/3] w-full rounded-[10px] bg-lavender object-cover [image-rendering:pixelated]"
+            class="image-refresh aspect-[2/3] w-full rounded-[10px] bg-lavender object-cover [image-rendering:pixelated]"
         >
 
         @if ($finished)
@@ -159,7 +172,7 @@ new class extends Component
         @endif
     </x-ui.window>
 
-    <x-ui.window title="Chatbox" :back="$backUrl" class="col-span-12 min-h-[32rem] lg:col-span-6 lg:col-start-7">
+    <x-ui.window title="Chatbox" :back="$backUrl" :delay="90" class="col-span-12 min-h-[32rem] lg:col-span-6 lg:col-start-7">
         <div class="flex flex-1 flex-col gap-3" aria-live="polite">
             <x-ui.bubble type="info">Qui se cache derrière l'image ?</x-ui.bubble>
 
@@ -213,7 +226,7 @@ new class extends Component
                 @enderror
 
                 @if ($this->suggestions->isNotEmpty())
-                    <ul class="absolute inset-x-0 bottom-full z-10 mb-2 max-h-80 overflow-y-auto rounded-inner border-2 border-rose bg-white p-1.5 shadow-window">
+                    <ul class="menu-open absolute inset-x-0 bottom-full z-10 origin-bottom mb-2 max-h-80 overflow-y-auto rounded-inner border-2 border-rose bg-white p-1.5 shadow-window">
                         @foreach ($this->suggestions as $suggestion)
                             <li wire:key="suggestion-{{ $suggestion->id }}">
                                 <button

@@ -88,6 +88,7 @@ new #[Title('Animes — Pixelnime')] class extends Component
                     wire:key="anime-{{ $anime->id }}"
                     :title="Str::slug($anime->title).'.jpg'"
                     controls="close"
+                    :delay="min($loop->index * 40, 400)"
                     body-class="p-3 gap-2.5"
                     @class(['outline-4 outline-offset-2 outline-violet' => in_array($anime->id, $selected, true)])
                 >

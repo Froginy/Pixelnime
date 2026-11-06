@@ -38,15 +38,18 @@ new #[Title('Pixelnime — devine le personnage d\'anime')] class extends Compon
         @endif
     </div>
 
-    <x-ui.window title="Menu" :back-click="$choosingDifficulty ? '$set(\'choosingDifficulty\', false)' : null" class="col-span-12 self-start lg:col-span-6 lg:col-start-7 lg:mt-[60px]" body-class="items-stretch justify-center gap-5 px-6 py-10 sm:px-10">
+    <x-ui.window title="Menu" :delay="90" :back-click="$choosingDifficulty ? '$set(\'choosingDifficulty\', false)' : null" class="col-span-12 self-start lg:col-span-6 lg:col-start-7 lg:mt-[60px]" body-class="items-stretch justify-center gap-5 px-6 py-10 sm:px-10">
         @if (! $choosingDifficulty)
+            <div wire:key="menu-modes" class="window-swap flex flex-col gap-5">
             <h2 class="text-center font-title text-[26px] font-semibold">Choisis ton mode de jeu</h2>
             <p class="text-center text-base text-ink-soft">Devine le personnage caché derrière l'image pixelisée. 5 essais, et l'image devient plus nette à chaque erreur.</p>
 
             <x-ui.button :href="route('daily')" size="lg">Daily</x-ui.button>
             <x-ui.button :href="route('animes')" size="lg">Anime</x-ui.button>
             <x-ui.button wire:click="$set('choosingDifficulty', true)" size="lg">Difficulté</x-ui.button>
+            </div>
         @else
+            <div wire:key="menu-difficulties" class="window-swap flex flex-col gap-5">
             <h2 class="text-center font-title text-[26px] font-semibold">Mode infini : quelle difficulté ?</h2>
 
             @foreach (Difficulty::cases() as $difficulty)
@@ -55,6 +58,7 @@ new #[Title('Pixelnime — devine le personnage d\'anime')] class extends Compon
                 </x-ui.button>
             @endforeach
             <x-ui.button :href="route('infinite')" size="lg">Toutes</x-ui.button>
+            </div>
         @endif
     </x-ui.window>
 </div>

@@ -84,3 +84,23 @@ it('turns the window close button into a link back to the given page', function 
         ->assertSeeHtml('href="'.route('animes').'"')
         ->assertSeeHtml('aria-label="Retour"');
 });
+
+it('plays the celebration animation when the game is won during the visit', function () {
+    $game = Game::factory()->create();
+
+    playAs($game->player_uuid)
+        ->test('game-board', ['gameId' => $game->id])
+        ->assertDontSeeHtml('window-celebrate')
+        ->call('guess', $game->character_id)
+        ->assertSeeHtml('window-celebrate');
+});
+
+it('shakes the window like an error when the last attempt fails', function () {
+    $game = Game::factory()->create(['guesses' => Character::factory()->count(Game::MAX_ATTEMPTS - 1)->create()->pluck('id')->all()]);
+
+    playAs($game->player_uuid)
+        ->test('game-board', ['gameId' => $game->id])
+        ->call('guess', Character::factory()->create()->id)
+        ->assertSeeHtml('window-error')
+        ->assertDontSeeHtml('window-celebrate');
+});

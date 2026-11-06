@@ -15,7 +15,7 @@
 @endphp
 
 <div {{ $attributes->class(['flex flex-col', 'items-end' => $isPlayer, 'items-start' => ! $isPlayer]) }}>
-    <p class="max-w-[85%] rounded-bubble px-5 py-3 text-lg leading-snug {{ $color }}">{{ $slot }}</p>
+    <p @class(['bubble-pop max-w-[85%] rounded-bubble px-5 py-3 text-lg leading-snug', $color, 'origin-bottom-right' => $isPlayer, 'origin-bottom-left' => ! $isPlayer])>{{ $slot }}</p>
 
     <span class="relative h-5 w-14" aria-hidden="true">
         <span @class(['absolute top-0 size-3.5 rounded-pixel', $color, 'left-5' => $isPlayer, 'left-[22px]' => ! $isPlayer])></span>

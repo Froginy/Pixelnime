@@ -4,6 +4,7 @@
     'bodyClass' => '',
     'back' => null,
     'backClick' => null,
+    'delay' => 0,
 ])
 
 @php
@@ -11,7 +12,7 @@
     $backClasses = 'window-back grid size-7 place-items-center rounded-control border-2 border-violet bg-lavender shadow-[0_2px_0_var(--color-violet)] transition hover:bg-violet focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink active:translate-y-0.5 active:shadow-none';
 @endphp
 
-<section {{ $attributes->class('flex flex-col rounded-window bg-rose px-1.5 pb-1.5 shadow-window') }} aria-label="{{ $title }}">
+<section {{ $attributes->class('window-open flex flex-col rounded-window bg-rose px-1.5 pb-1.5 shadow-window')->merge(['style' => '--window-delay: '.(int) $delay.'ms']) }} aria-label="{{ $title }}">
     <div class="flex items-center gap-2 py-2 pr-0.5 pl-2.5">
         <svg class="size-4 shrink-0" viewBox="0 0 20 20" aria-hidden="true">
             <g class="fill-rose-pale">

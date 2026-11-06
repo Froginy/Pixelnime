@@ -27,7 +27,7 @@
                 <livewire:theme-toggle />
             </header>
 
-            <main class="flex flex-1 flex-col justify-center pb-7">
+            <main wire:transition.navigate class="flex flex-1 flex-col justify-center pb-7">
                 {{ $slot }}
             </main>
         </div>

@@ -99,7 +99,101 @@
     animation: none;
 }
 
+@view-transition {
+    navigation: auto;
+}
+
+/* Une fenêtre qui s'ouvre : petit zoom avec rebond, façon bureau kawaii. */
+@keyframes window-open {
+    0% { opacity: 0; transform: translateY(18px) scale(0.82); }
+    55% { opacity: 1; transform: translateY(-3px) scale(1.025); }
+    78% { transform: translateY(1px) scale(0.995); }
+    100% { opacity: 1; transform: none; }
+}
+
+/* La page quittée se referme comme une fenêtre. */
+@keyframes window-close {
+    to { opacity: 0; transform: translateY(10px) scale(0.92); }
+}
+
+@keyframes window-celebrate {
+    0%, 100% { transform: none; }
+    20% { transform: translateY(-14px) rotate(-1.5deg); }
+    40% { transform: translateY(0) rotate(0); }
+    60% { transform: translateY(-7px) rotate(1deg); }
+    80% { transform: translateY(0); }
+}
+
+@keyframes window-error {
+    0%, 100% { transform: none; }
+    15%, 55% { transform: translateX(-10px); }
+    35%, 75% { transform: translateX(10px); }
+    90% { transform: translateX(-4px); }
+}
+
+@keyframes window-swap {
+    from { opacity: 0; transform: translateX(16px); }
+}
+
+@keyframes bubble-pop {
+    0% { opacity: 0; transform: scale(0.5); }
+    65% { opacity: 1; transform: scale(1.06); }
+    100% { transform: none; }
+}
+
+@keyframes menu-open {
+    from { opacity: 0; transform: scaleY(0.85) translateY(6px); }
+}
+
+@keyframes image-refresh {
+    0% { filter: brightness(1.6) saturate(0.6); }
+    100% { filter: none; }
+}
+
+.window-open {
+    animation: window-open 460ms cubic-bezier(0.2, 0.9, 0.3, 1.15) var(--window-delay, 0ms) both;
+}
+
+.window-celebrate {
+    animation: window-celebrate 900ms ease-out both;
+}
+
+.window-error {
+    animation: window-error 520ms ease-in-out both;
+}
+
+.window-swap {
+    animation: window-swap 260ms ease-out both;
+}
+
+.bubble-pop {
+    animation: bubble-pop 340ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+
+.menu-open {
+    animation: menu-open 140ms ease-out both;
+}
+
+.image-refresh {
+    animation: image-refresh 600ms ease-out both;
+}
+
+html:active-view-transition-type(navigate)::view-transition-old(livewire-navigate) {
+    animation: window-close 180ms ease-in both;
+}
+
+html:active-view-transition-type(navigate)::view-transition-new(livewire-navigate) {
+    animation: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
+    .window-open,
+    .window-celebrate,
+    .window-error,
+    .window-swap,
+    .bubble-pop,
+    .menu-open,
+    .image-refresh,
     .window-back,
     .sky-twinkle,
     .sky-cloud,

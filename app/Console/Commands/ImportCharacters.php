@@ -20,7 +20,8 @@ use Throwable;
     {--limit=300 : Nombre de personnages populaires qui déterminent les animes importés}
     {--per-anime=80 : Nombre maximum de personnages importés pour chaque anime (0 pour ne pas compléter les animes)}
     {--min-favourites=10 : Popularité minimale (favoris AniList) d\'un personnage secondaire}
-    {--anime=* : Importe seulement ces animes (titre à chercher sur AniList) avec leurs personnages}')]
+    {--anime=* : Importe seulement ces animes (titre à chercher sur AniList) avec leurs personnages}
+    {--quick : Import rapide pour tester (50 personnages populaires, 10 personnages par anime)}')]
 #[Description('Importe les personnages d\'anime les plus populaires depuis AniList, puis complète chaque anime avec ses personnages')]
 class ImportCharacters extends Command
 {
@@ -29,19 +30,25 @@ class ImportCharacters extends Command
      */
     private const int PAUSE_MILLISECONDS = 2100;
 
+    private const int QUICK_LIMIT = 50;
+
+    private const int QUICK_PER_ANIME = 10;
+
     /**
      * Execute the console command.
      */
     public function handle(AniListClient $aniList): int
     {
-        $perAnime = max(0, (int) $this->option('per-anime'));
+        $quick = (bool) $this->option('quick');
+        $limit = $quick ? self::QUICK_LIMIT : max(1, (int) $this->option('limit'));
+        $perAnime = $quick ? self::QUICK_PER_ANIME : max(0, (int) $this->option('per-anime'));
         $minFavourites = max(0, (int) $this->option('min-favourites'));
         $titles = $this->option('anime');
 
         if ($titles !== []) {
             $animes = collect($titles)->filter()->map(fn (string $title): ?Anime => $this->findAnime($aniList, $title))->filter();
         } else {
-            $this->importPopularCharacters($aniList, max(1, (int) $this->option('limit')));
+            $this->importPopularCharacters($aniList, $limit);
             $animes = Anime::query()->orderByDesc('popularity')->get();
         }
 

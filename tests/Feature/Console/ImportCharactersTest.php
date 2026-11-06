@@ -177,3 +177,39 @@ it('imports only the requested animes with their characters', function () {
         ->and(Character::query()->sole()->name)->toBe('Rudo Surebrec');
     Http::assertSentCount(4);
 });
+
+it('keeps at most ten characters per anime in quick mode', function () {
+    Storage::fake('local');
+    Storage::fake('public');
+    Sleep::fake();
+    Http::preventStrayRequests();
+
+    Http::fake([
+        'graphql.anilist.co' => function (Request $request) {
+            if (str_contains($request['query'], 'Media(id')) {
+                return Http::response(['data' => ['Media' => ['characters' => [
+                    'pageInfo' => ['hasNextPage' => true],
+                    'edges' => collect(range(100, 115))->map(fn (int $id): array => [
+                        'role' => 'SUPPORTING',
+                        'node' => [
+                            'id' => $id,
+                            'favourites' => 1000 - $id,
+                            'name' => ['full' => "Character {$id}", 'alternative' => []],
+                            'image' => ['large' => "https://s4.anilist.co/file/character/{$id}.png"],
+                        ],
+                    ])->all(),
+                ]]]]);
+            }
+
+            return Http::response(['data' => ['Page' => [
+                'pageInfo' => ['hasNextPage' => false],
+                'characters' => [aniListCharacter(1, 900, 10)],
+            ]]]);
+        },
+        's4.anilist.co/*' => Http::response('image-bytes'),
+    ]);
+
+    $this->artisan('pixelnime:import', ['--quick' => true])->assertSuccessful();
+
+    expect(Character::query()->where('anilist_id', '>=', 100)->count())->toBe(10);
+});

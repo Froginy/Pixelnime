@@ -48,7 +48,7 @@
             "@php artisan key:generate",
             "@php artisan migrate --force",
             "@php artisan storage:link --force",
-            "@php artisan pixelnime:import",
+            "@php artisan pixelnime:import --quick",
             "npm install",
             "npm run build"
         ],

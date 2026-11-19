@@ -62,3 +62,34 @@ it('returns the guessed characters in submission order', function () {
 
     expect($game->guessedCharacters()->pluck('id')->all())->toBe($characters->pluck('id')->all());
 });
+
+it('ends the game as given up when the player abandons', function () {
+    $game = Game::factory()->create();
+    $game->submitGuess(Character::factory()->create());
+
+    $game->giveUp();
+
+    expect($game->fresh())
+        ->status->toBe(GameStatus::Lost)
+        ->wasGivenUp()->toBeTrue()
+        ->revealLevel()->toBe(Game::FULL_QUALITY_LEVEL);
+});
+
+it('rejects giving up a game that is already over', function () {
+    expect(fn () => Game::factory()->won()->create()->giveUp())->toThrow(LogicException::class);
+});
+
+it('unlocks the hint only after two wrong guesses and keeps it revealed', function () {
+    $game = Game::factory()->create();
+    $game->submitGuess(Character::factory()->create());
+
+    expect($game->canRevealHint())->toBeFalse()
+        ->and(fn () => $game->revealHint())->toThrow(LogicException::class);
+
+    $game->submitGuess(Character::factory()->create());
+    $game->revealHint();
+
+    expect($game->fresh())
+        ->hint_revealed->toBeTrue()
+        ->canRevealHint()->toBeFalse();
+});

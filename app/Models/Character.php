@@ -77,12 +77,83 @@ class Character extends Model
     }
 
     /**
-     * Scope the query to characters whose names contain the given term.
+     * Split a search term in normalized words, ignoring accents, case and punctuation.
+     *
+     * @return list<string>
+     */
+    public static function searchWords(string $term): array
+    {
+        $normalized = Str::of($term)->ascii()->lower()->replaceMatches('/[^a-z0-9]+/', ' ')->squish()->toString();
+
+        return $normalized === '' ? [] : explode(' ', $normalized);
+    }
+
+    /**
+     * Scope the query to characters whose name or one of its aliases contains every word of the term, in any order.
      *
      * @param  Builder<Character>  $query
      */
     public function scopeMatching(Builder $query, string $term): void
     {
-        $query->where('search_name', 'like', '%'.static::normalizeName($term).'%');
+        $words = static::searchWords($term);
+
+        if ($words === []) {
+            $query->whereRaw('1 = 0');
+
+            return;
+        }
+
+        foreach ($words as $word) {
+            $query->where('search_name', 'like', "%{$word}%");
+        }
+    }
+
+    /**
+     * Scope the query to the characters of the animes whose title contains every word of the term.
+     *
+     * @param  Builder<Character>  $query
+     */
+    public function scopeFromAnimeMatching(Builder $query, string $term): void
+    {
+        $words = static::searchWords($term);
+
+        if ($words === []) {
+            $query->whereRaw('1 = 0');
+
+            return;
+        }
+
+        $query->whereHas('anime', function (Builder $animeQuery) use ($words): void {
+            foreach ($words as $word) {
+                $animeQuery->where('title', 'like', "%{$word}%");
+            }
+        });
+    }
+
+    /**
+     * Get the alias that matches the term when the main name does not, to explain the suggestion.
+     */
+    public function matchingAlias(string $term): ?string
+    {
+        $words = static::searchWords($term);
+        $contains = fn (string $value): bool => $words !== [] && collect($words)->every(
+            fn (string $word): bool => str_contains(implode(' ', static::searchWords($value)), $word)
+        );
+
+        if ($contains($this->name)) {
+            return null;
+        }
+
+        return collect($this->alternative_names)->first(fn (string $alias): bool => $contains($alias));
+    }
+
+    /**
+     * Get the initials of the character, used as a hint.
+     */
+    public function initials(): string
+    {
+        return collect(explode(' ', Str::squish($this->name)))
+            ->map(fn (string $part): string => Str::upper(Str::substr($part, 0, 1)).'.')
+            ->implode(' ');
     }
 }

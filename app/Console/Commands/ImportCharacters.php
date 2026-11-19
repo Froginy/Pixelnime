@@ -181,8 +181,17 @@ class ImportCharacters extends Command
         ]);
         $anime->difficulty ??= Difficulty::Hard;
 
-        if ($anime->cover_path === null && ($coverUrl = $media['coverImage']['large'] ?? null)) {
-            $anime->cover_path = $this->storeImage($aniList, 'public', 'covers', $media['id'], $coverUrl);
+        if (
+            (! $anime->cover_path || ! Storage::disk('public')->exists($anime->cover_path))
+            && ($coverUrl = $media['coverImage']['large'] ?? null)
+        ) {
+            $anime->cover_path = $this->storeImage(
+                $aniList,
+                'public',
+                'covers',
+                $media['id'],
+                $coverUrl
+            );
         }
 
         $anime->save();

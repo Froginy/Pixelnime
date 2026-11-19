@@ -9,7 +9,7 @@
 
 @php
     $hasBack = filled($back) || filled($backClick);
-    $backClasses = 'window-back grid size-7 place-items-center rounded-control border-2 border-violet bg-lavender shadow-[0_2px_0_var(--color-violet)] transition hover:bg-violet focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink active:translate-y-0.5 active:shadow-none';
+   $backClasses = 'window-back grid size-7 place-items-center rounded-control border-2 border-violet bg-lavender shadow-[0_2px_0_var(--color-violet)] transition hover:bg-violet night:border-rose night:bg-rose-pale night:shadow-[0_2px_0_var(--color-rose)] night:hover:bg-rose focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink active:translate-y-0.5 active:shadow-none';
 @endphp
 
 <section {{ $attributes->class('window-open flex flex-col rounded-window bg-rose px-1.5 pb-1.5 shadow-window')->merge(['style' => '--window-delay: '.(int) $delay.'ms']) }} aria-label="{{ $title }}">

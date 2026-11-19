@@ -61,6 +61,18 @@
     100% { transform: translate(420px, 210px); opacity: 0; }
 }
 
+
+@layer base {
+    [data-theme="night"] {
+        --color-rose: #a99bd8;
+        --color-rose-pale: #eee8fa;
+
+        --color-violet: #df9ad0;
+        --color-lavender: #c9c2ee;
+    }
+}
+
+
 .sky-twinkle {
     animation: sky-twinkle var(--duration, 3s) ease-in-out var(--delay, 0s) infinite;
 }

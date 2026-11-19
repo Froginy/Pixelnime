@@ -158,7 +158,7 @@ new #[Title('Mode infini — Pixelnime')] class extends Component
     </div>
 
     @if ($gameId)
-        <livewire:game-board :game-id="$gameId" :back-url="$this->backUrl()" :key="'game-'.$gameId" />
+        <livewire:game-board :game-id="$gameId" :back-url="$this->backUrl()" :anime-ids="$animes" :key="'game-'.$gameId" />
     @else
         <x-ui.window title="Oups.txt" :back="$this->backUrl()" class="max-w-xl">
             <p class="text-lg">Aucun personnage ne correspond à ces filtres.</p>

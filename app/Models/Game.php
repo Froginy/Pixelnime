@@ -20,13 +20,14 @@ use LogicException;
  * @property int $character_id
  * @property int|null $daily_challenge_id
  * @property list<int> $guesses
+ * @property bool $hint_revealed
  * @property GameStatus $status
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read Character $character
  * @property-read DailyChallenge|null $dailyChallenge
  */
-#[Fillable(['player_uuid', 'mode', 'character_id', 'daily_challenge_id', 'guesses', 'status'])]
+#[Fillable(['player_uuid', 'mode', 'character_id', 'daily_challenge_id', 'guesses', 'hint_revealed', 'status'])]
 class Game extends Model
 {
     /** @use HasFactory<GameFactory> */
@@ -37,12 +38,18 @@ class Game extends Model
     public const int FULL_QUALITY_LEVEL = self::MAX_ATTEMPTS + 1;
 
     /**
+     * Number of wrong guesses needed before the hint can be revealed.
+     */
+    public const int HINT_UNLOCKED_AFTER = 2;
+
+    /**
      * The model's default values for attributes.
      *
      * @var array<string, mixed>
      */
     protected $attributes = [
         'guesses' => '[]',
+        'hint_revealed' => false,
         'status' => 'playing',
     ];
 
@@ -56,6 +63,7 @@ class Game extends Model
         return [
             'mode' => GameMode::class,
             'guesses' => 'array',
+            'hint_revealed' => 'boolean',
             'status' => GameStatus::class,
         ];
     }
@@ -125,6 +133,44 @@ class Game extends Model
             default => GameStatus::Playing,
         };
 
+        $this->save();
+    }
+
+    /**
+     * End the game as lost, revealing the answer.
+     */
+    public function giveUp(): void
+    {
+        if ($this->status->isFinished()) {
+            throw new LogicException('This game is already over.');
+        }
+
+        $this->status = GameStatus::Lost;
+        $this->save();
+    }
+
+    /**
+     * Determine if the player stopped before using every attempt.
+     */
+    public function wasGivenUp(): bool
+    {
+        return $this->status === GameStatus::Lost && count($this->guesses) < self::MAX_ATTEMPTS;
+    }
+
+    public function canRevealHint(): bool
+    {
+        return ! $this->status->isFinished()
+            && ! $this->hint_revealed
+            && count($this->guesses) >= self::HINT_UNLOCKED_AFTER;
+    }
+
+    public function revealHint(): void
+    {
+        if (! $this->canRevealHint()) {
+            throw new LogicException('The hint is not available.');
+        }
+
+        $this->hint_revealed = true;
         $this->save();
     }
 

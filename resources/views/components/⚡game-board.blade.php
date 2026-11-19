@@ -19,6 +19,16 @@ new class extends Component
     #[Locked]
     public string $backUrl = '/';
 
+    /**
+     * Animes the player chose to play with, whose characters are suggested first.
+     *
+     * @var list<int>
+     */
+    #[Locked]
+    public array $animeIds = [];
+
+    private const int SUGGESTION_LIMIT = 10;
+
     public string $search = '';
 
     /**
@@ -46,13 +56,45 @@ new class extends Component
             return collect();
         }
 
-        return Character::query()
+        $byName = Character::query()
             ->with('anime')
             ->matching($this->search)
             ->whereNotIn('id', $this->game->guesses)
             ->orderByDesc('favourites')
-            ->limit(8)
+            ->limit(self::SUGGESTION_LIMIT)
             ->get();
+
+        $byAnime = Character::query()
+            ->with('anime')
+            ->fromAnimeMatching($this->search)
+            ->whereNotIn('id', [...$this->game->guesses, ...$byName->modelKeys()])
+            ->orderByDesc('favourites')
+            ->limit(self::SUGGESTION_LIMIT)
+            ->get();
+
+        $preferredAnimeIds = $this->preferredAnimeIds();
+
+        return $byName->concat($byAnime)
+            ->values()
+            ->sortBy(fn (Character $character, int $position): int => (in_array($character->anime_id, $preferredAnimeIds, true) ? 0 : 1000) + $position)
+            ->take(self::SUGGESTION_LIMIT)
+            ->values();
+    }
+
+    /**
+     * Get the animes to suggest first: the ones the player selected, and the right one once a guess revealed it.
+     *
+     * @return list<int>
+     */
+    protected function preferredAnimeIds(): array
+    {
+        $animeIds = $this->animeIds;
+
+        if ($this->messages->contains(fn (array $message): bool => $message['result'] === 'close')) {
+            $animeIds[] = $this->game->character->anime_id;
+        }
+
+        return $animeIds;
     }
 
     /**
@@ -93,6 +135,29 @@ new class extends Component
 
         $this->reset('search');
         unset($this->game, $this->messages, $this->suggestions);
+    }
+
+    public function giveUp(): void
+    {
+        if ($this->game->status->isFinished()) {
+            return;
+        }
+
+        $this->game->giveUp();
+        $this->outcome = GameStatus::Lost->value;
+
+        $this->reset('search');
+        unset($this->game, $this->suggestions);
+    }
+
+    public function revealHint(): void
+    {
+        if (! $this->game->canRevealHint()) {
+            return;
+        }
+
+        $this->game->revealHint();
+        unset($this->game);
     }
 
     public function guessFirstSuggestion(): void
@@ -189,7 +254,13 @@ new class extends Component
                 </div>
             @endforeach
 
-            @if ($game->status === GameStatus::Lost)
+            @if ($game->hint_revealed)
+                <x-ui.bubble type="info">Indice : ses initiales sont {{ $character->initials() }}</x-ui.bubble>
+            @endif
+
+            @if ($game->wasGivenUp())
+                <x-ui.bubble type="info">Tu as abandonné ! C'était {{ $character->name }} ({{ $character->anime->title }}).</x-ui.bubble>
+            @elseif ($game->status === GameStatus::Lost)
                 <x-ui.bubble type="info">Perdu ! C'était {{ $character->name }} ({{ $character->anime->title }}).</x-ui.bubble>
             @endif
         </div>
@@ -235,7 +306,12 @@ new class extends Component
                                     class="flex w-full flex-col items-start rounded-control px-3 py-2 text-left hover:bg-lavender focus-visible:bg-lavender focus-visible:outline-none"
                                 >
                                     <span class="text-base text-ink">{{ $suggestion->name }}</span>
-                                    <span class="text-sm text-ink-soft">{{ $suggestion->anime->title }}</span>
+                                    <span class="text-sm text-ink-soft">
+                                        @if ($alias = $suggestion->matchingAlias($search))
+                                            alias « {{ $alias }} » ·
+                                        @endif
+                                        {{ $suggestion->anime->title }}
+                                    </span>
                                 </button>
                             </li>
                         @endforeach
@@ -243,6 +319,28 @@ new class extends Component
                 @elseif (mb_strlen(trim($search)) >= 2)
                     <p class="mt-2 text-sm text-ink-soft">Aucun personnage trouvé.</p>
                 @endif
+
+                <div class="mt-3 flex flex-wrap justify-between gap-3">
+                    <x-ui.button
+                        size="sm"
+                        wire:click="revealHint"
+                        :disabled="! $game->canRevealHint()"
+                        :title="$game->hint_revealed ? 'Indice déjà utilisé' : ($game->canRevealHint() ? 'Affiche les initiales du personnage' : 'Disponible après '.Game::HINT_UNLOCKED_AFTER.' erreurs')"
+                    >
+                        @if ($game->hint_revealed)
+                            Indice utilisé
+                        @elseif ($game->canRevealHint())
+                            Indice
+                        @else
+                            Indice dans {{ Game::HINT_UNLOCKED_AFTER - count($game->guesses) }} erreur{{ Game::HINT_UNLOCKED_AFTER - count($game->guesses) > 1 ? 's' : '' }}
+                        @endif
+                    </x-ui.button>
+                    <x-ui.button
+                        size="sm"
+                        wire:click="giveUp"
+                        wire:confirm="Abandonner cette partie ? La réponse sera affichée."
+                    >Abandonner</x-ui.button>
+                </div>
             </div>
         @else
             <div class="flex flex-col gap-3">
